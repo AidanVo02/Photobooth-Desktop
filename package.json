@@ -1,0 +1,12 @@
+{
+  "name": "photobooth-App",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^43.1.1",
+    "pdf-to-printer": "^5.6.0" 
+  }
+}
