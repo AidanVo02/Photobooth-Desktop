@@ -5,9 +5,12 @@ node_modules/
 .env
 .env.*
 !.env.example
+cloudflare-album/.dev.vars
 
 # Build / runtime output
 assets/prints/
+assets/captures/
+assets/eos-preview/
 
 # Logs
 npm-debug.log*

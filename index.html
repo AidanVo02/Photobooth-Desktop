@@ -1,491 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Saigon Tếu Photobooth - Canon Selphy Edition</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts -->
+  <title>Saigon Tếu Photobooth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Bangers&family=Patrick+Hand&display=swap"
-    rel="stylesheet">
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Confetti Effector -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brandYellow: '#FFCC00',
-            brandDark: '#121212',
-            brandCard: '#1E1E1E',
-            brandOrange: '#FF4500'
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            comic: ['Bangers', 'cursive'],
-            hand: ['Patrick Hand', 'cursive']
-          }
-        }
-      }
-    }
-  </script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Be+Vietnam+Pro:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #121212;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #FFCC00;
-      border-radius: 10px;
-    }
-
-    .comic-border {
-      border: 4px solid #000;
-      box-shadow: 6px 6px 0px #000;
-    }
-
-    .comic-shadow-yellow {
-      box-shadow: 6px 6px 0px #FFCC00;
-    }
-
-    @keyframes flash-anim {
-      0% {
-        opacity: 0;
-      }
-
-      10% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0;
-      }
-    }
-
-    .flash-active {
-      animation: flash-anim 0.5s ease-out forwards;
-    }
-
-    @keyframes custom-pulse {
-
-      0%,
-      100% {
-        transform: scale(1);
-      }
-
-      50% {
-        transform: scale(1.03);
-      }
-    }
-
-    .active-pulse {
-      animation: custom-pulse 1.5s infinite ease-in-out;
-    }
-
-    @keyframes printing-pass {
-      0% {
-        transform: translateY(-110%);
-      }
-
-      40% {
-        transform: translateY(10%);
-      }
-
-      60% {
-        transform: translateY(10%);
-      }
-
-      100% {
-        transform: translateY(-110%);
-      }
-    }
-
-    .printing-paper-move {
-      animation: printing-pass 3s ease-in-out infinite alternate;
-    }
+    :root{--yellow:#ffd21f;--ink:#090909;--panel:#171717;--soft:#252525;--muted:#aaa;--danger:#ef4444}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{font-family:"Be Vietnam Pro",sans-serif;background:var(--ink);color:#fff;user-select:none}
+    button,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+    .app{height:100vh;display:grid;grid-template-rows:88px 1fr;background:radial-gradient(circle at 75% 0,#3d3508 0,transparent 28%),linear-gradient(135deg,#080808,#151515)}
+    .topbar{display:grid;grid-template-columns:260px 1fr 260px;align-items:center;padding:0 32px;border-bottom:2px solid #2d2d2d;background:rgba(8,8,8,.94);z-index:20}
+    .brand{display:flex;align-items:center;gap:12px}.brand-mark{width:52px;height:52px;display:grid;place-items:center;background:var(--yellow);color:#000;border:3px solid #000;border-radius:50%;font:29px Bangers;transform:rotate(-8deg);box-shadow:3px 3px var(--yellow)}
+    .brand strong,.brand span{display:block}.brand strong{font:27px Bangers;color:var(--yellow);letter-spacing:1.5px}.brand span{font-size:9px;letter-spacing:4px;font-weight:800}
+    .progress{display:flex;align-items:center;justify-content:center}.progress-item{display:flex;align-items:center;color:#666;font-size:11px;font-weight:800}.progress-item:not(:last-child)::after{content:"";width:54px;height:2px;background:#333;margin:0 10px}.progress-item.done:not(:last-child)::after{background:var(--yellow)}
+    .step-dot{width:32px;height:32px;display:grid;place-items:center;border:2px solid #444;border-radius:50%;margin-right:7px}.progress-item.active{color:#fff}.progress-item.active .step-dot,.progress-item.done .step-dot{background:var(--yellow);border-color:var(--yellow);color:#000}
+    .tech{justify-self:end;background:#202020;color:#bbb;border:1px solid #444;border-radius:10px;padding:9px 13px;font-size:11px}
+    main{min-height:0}.view{height:100%;padding:30px 42px 36px;overflow:auto}.view-inner{width:min(1440px,100%);height:100%;min-height:620px;margin:auto;display:flex;flex-direction:column}
+    .eyebrow{color:var(--yellow);font-size:11px;font-weight:900;letter-spacing:2px;margin:0 0 6px}.title{font:clamp(38px,4vw,64px)/.95 Bangers;margin:0;letter-spacing:1.5px}.subtitle{color:#aaa;margin:10px 0 0;font-size:13px}.section-head{text-align:center;margin-bottom:26px}
+    .primary,.secondary,.danger{border:3px solid #000;border-radius:14px;padding:15px 24px;font-weight:900;box-shadow:4px 4px #000}.primary{background:var(--yellow);color:#000}.secondary{background:#fff;color:#000}.danger{background:var(--danger);color:#fff}.primary:disabled{background:#555;color:#999;cursor:not-allowed}.primary:active,.secondary:active,.danger:active{transform:translate(2px,2px);box-shadow:2px 2px #000}
+    .layout-grid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:18px;margin:auto 0}.layout-card{position:relative;min-height:330px;padding:20px 16px;background:var(--panel);border:3px solid #303030;border-radius:22px;color:#fff;text-align:center;transition:.18s}.layout-card:hover,.layout-card.selected{border-color:var(--yellow);transform:translateY(-4px);box-shadow:0 12px 35px #000}.layout-card.selected::after{content:"✓";position:absolute;right:12px;top:12px;width:28px;height:28px;display:grid;place-items:center;background:var(--yellow);color:#000;border-radius:50%;font-weight:900}.paper{width:118px;height:176px;margin:15px auto;background:#fff;padding:8px;display:grid;gap:5px;border:3px solid #000;box-shadow:6px 6px #000}.paper span{display:block;background:#ccc;border:1px solid #aaa}.paper.strip3{grid-template-columns:1fr 1fr}.paper.strip3 i{display:grid;grid-template-rows:repeat(3,1fr);gap:4px}.paper.strip4{grid-template-columns:1fr 1fr}.paper.strip4 i{display:grid;grid-template-rows:repeat(4,1fr);gap:3px}.paper.grid4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.paper.double2{grid-template-rows:1fr 1fr}.paper.single{grid-template-rows:1fr}.layout-card h3{font:24px Bangers;margin:16px 0 6px;color:var(--yellow)}.layout-card p{font-size:11px;color:#aaa;margin:0}.step-actions{margin-top:auto;display:flex;justify-content:center;padding-top:24px}
+    .capture-shell{display:grid;grid-template-columns:minmax(0,3fr) minmax(300px,1fr);gap:24px;min-height:0;flex:1}.camera-panel{position:relative;min-height:480px;background:#000;border:3px solid #333;border-radius:24px;overflow:hidden;display:flex;align-items:center;justify-content:center}.camera-panel video,.camera-panel>img{width:100%;height:100%;object-fit:contain;transform:scaleX(-1)}
+    .crop-guide{position:absolute;z-index:4;border:3px solid var(--yellow);box-shadow:0 0 0 9999px rgba(0,0,0,.5),inset 0 0 0 1px rgba(0,0,0,.75);pointer-events:none;transition:width .2s,height .2s,left .2s,top .2s}.crop-guide::before,.crop-guide::after{content:"";position:absolute;inset:33.333% 0;border-top:1px dashed #fff8;border-bottom:1px dashed #fff8}.crop-guide::after{inset:0 33.333%;border:0;border-left:1px dashed #fff8;border-right:1px dashed #fff8}.crop-guide-label{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);max-width:calc(100% - 20px);padding:7px 12px;background:#000d;color:#fff;border:1px solid var(--yellow);border-radius:999px;font-size:10px;font-weight:900;white-space:nowrap}.crop-guide-label b{color:var(--yellow)}
+    .countdown{position:absolute;inset:0;display:grid;place-items:center;background:#0005;font:180px Bangers;color:var(--yellow);text-shadow:8px 8px #000;z-index:5}.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:7}.flash.active{animation:flash .45s}.camera-status{position:absolute;z-index:6;left:18px;top:18px;background:#000c;border:1px solid var(--yellow);border-radius:999px;padding:8px 14px;font-size:11px;font-weight:800}.capture-side{display:flex;flex-direction:column;gap:16px}.side-card{background:var(--panel);border:2px solid #333;border-radius:20px;padding:20px}.side-card h3{font:25px Bangers;color:var(--yellow);margin:0 0 12px}.mini-layout{aspect-ratio:2/3;max-height:320px;margin:auto;background:#fff;padding:10px;display:grid;gap:7px;border:3px solid #000}.mini-slot{position:relative;display:grid;place-items:center;background:#d5d5d5;color:#555;border:2px solid #aaa;font-weight:900;overflow:hidden}.mini-slot.current{border:5px solid var(--yellow);animation:pulse 1s infinite}.mini-slot.done{border-color:#111}.mini-slot img{width:100%;height:100%;object-fit:cover}.capture-controls{display:grid;gap:10px;margin-top:auto}.capture-controls .primary{width:100%;font-size:17px}.capture-hint{text-align:center;color:#aaa;font-size:11px}.review{position:absolute;inset:0;z-index:8;display:grid;grid-template-columns:1fr 300px;gap:24px;padding:28px;background:#090909f5}.review img{width:100%;height:100%;object-fit:contain;transform:none;border-radius:18px;background:#000}.review-actions{display:flex;flex-direction:column;justify-content:center;gap:14px}.review-actions h2{font:42px Bangers;color:var(--yellow);margin:0}.review-actions p{font-size:12px;color:#aaa;margin:0 0 12px}
+    .edit-shell{display:grid;grid-template-columns:minmax(420px,1.5fr) minmax(340px,1fr);gap:28px;min-height:0;flex:1}.preview-stage{display:grid;place-items:center;background:#111;border:2px solid #333;border-radius:24px;padding:18px;min-height:0}.collage-preview{height:100%;max-height:630px;aspect-ratio:2/3;background:#fff;box-shadow:10px 10px #000;overflow:hidden}.edit-controls{display:flex;flex-direction:column;gap:16px;overflow:auto}.control-card{background:var(--panel);border:2px solid #333;border-radius:18px;padding:18px}.control-card h3{font:24px Bangers;color:var(--yellow);margin:0 0 12px}.options{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.option{background:#292929;color:#fff;border:2px solid #444;border-radius:12px;padding:12px;font-size:11px;font-weight:800}.option.selected{border-color:var(--yellow);color:var(--yellow)}
+    .output-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:980px;width:100%;margin:auto}.output-card{display:flex;flex-direction:column;align-items:flex-start;min-height:350px;padding:34px;background:var(--panel);border:3px solid #333;border-radius:26px;text-align:left}.output-card:hover{border-color:var(--yellow)}.output-icon{font-size:54px}.output-card h2{font:36px Bangers;color:var(--yellow);margin:20px 0 8px}.output-card p{font-size:12px;color:#aaa;line-height:1.7}.output-card button{width:100%;margin-top:auto}.result-shell{text-align:center;margin:auto}.qr-box{width:220px;height:220px;display:grid;place-items:center;margin:20px auto;background:#fff;border:5px solid #000;padding:8px;color:#111}.result-shell h2{font:48px Bangers;color:var(--yellow);margin:0}.result-shell p{color:#aaa}.progress-bar{width:min(500px,80vw);height:14px;margin:18px auto;background:#333;border:2px solid #000;border-radius:99px;overflow:hidden}.progress-bar div{height:100%;width:0;background:var(--yellow);transition:width .3s}
+    .settings{position:fixed;right:22px;top:96px;width:330px;z-index:50;padding:18px;background:#111;border:2px solid var(--yellow);border-radius:16px;box-shadow:0 18px 50px #000}.settings select{width:100%;padding:10px;background:#222;color:#fff;border:1px solid #555;border-radius:8px}.settings button{margin-top:10px;width:100%}.settings video,.settings img{width:100%;aspect-ratio:3/2;object-fit:contain;background:#000;margin-top:12px;transform:scaleX(-1)}
+    @keyframes pulse{50%{box-shadow:0 0 0 7px #ffd21f45}}@keyframes flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+    @media(max-width:1000px){.topbar{grid-template-columns:210px 1fr 100px;padding:0 18px}.progress-item span:last-child{display:none}.progress-item:not(:last-child)::after{width:28px}.layout-grid{grid-template-columns:repeat(3,1fr)}.capture-shell{grid-template-columns:1fr 280px}.view{padding:24px}.edit-shell{grid-template-columns:1fr 340px}}
   </style>
 </head>
-
-<body class="bg-brandDark text-white h-screen flex justify-center items-center overflow-hidden font-sans select-none">
-
-  <!-- Thư viện sinh QR -->
-  <script src="./qrcode.min.js"></script>
-
-  <!-- ĐOẠN CODE SỬA LỖI MÔI TRƯỜNG ELECTRON (BẮT BUỘC CÓ) -->
-  <script>
-    if (typeof module === 'object') {
-      window.module = module;
-      module = undefined;
-    }
-  </script>
-
-  <!-- CẤU HÌNH CAMERA ẨN DÀNH CHO KỸ THUẬT VIÊN -->
-  <button id="btn-settings"
-    class="absolute top-4 right-4 bg-black/60 border border-zinc-700 text-zinc-400 px-3 py-1.5 rounded-full text-xs hover:border-brandYellow hover:text-white z-50"
-    onclick="toggleSettingsPanel()">⚙️ Cài đặt Camera</button>
-  <div id="settings-panel"
-    class="hidden absolute top-16 right-4 bg-brandCard border-4 border-black p-4 rounded-2xl w-80 text-left z-50 shadow-2xl">
-    <h3 class="font-comic text-brandYellow text-lg mb-2">THIẾT LẬP HỆ THỐNG</h3>
-    <label class="text-xs text-zinc-400 block mb-1">Chọn nguồn Camera:</label>
-    <select id="camera-select" class="w-full p-2 rounded-lg bg-black border border-zinc-700 text-white text-sm mb-3"
-      onchange="changeCameraDevice()"></select>
-    <label class="text-xs text-zinc-400 block mb-1">Màn hình Test hình:</label>
-    <div class="w-full h-40 bg-black rounded-lg overflow-hidden mb-3">
-      <video id="test-webcam" autoplay playsinline class="w-full h-full object-cover"
-        style="transform: scaleX(-1);"></video>
-    </div>
-    <div class="flex gap-2">
-      <button class="bg-brandYellow text-black font-bold text-xs py-2 px-3 rounded-xl flex-1 text-center"
-        onclick="triggerTestCapture()">CHỤP TEST</button>
-      <button class="bg-zinc-800 text-white text-xs py-2 px-3 rounded-xl flex-1 text-center"
-        onclick="toggleSettingsPanel()">ĐÓNG</button>
-    </div>
-  </div>
-
-  <!-- MAIN KIOSK CONTAINER -->
-  <div
-    class="w-full h-full max-w-md md:max-w-xl md:h-[95vh] bg-gradient-to-b from-[#1c1c1c] to-brandDark md:rounded-3xl border-4 border-black shadow-[10px_10px_0px_rgba(0,0,0,1)] md:my-auto flex flex-col justify-between relative overflow-hidden">
-
-    <!-- TOP BRANDING BANNER -->
-    <header class="bg-black border-b-4 border-black p-4 flex justify-between items-center z-10">
-      <div class="flex items-center gap-3">
-        <div
-          class="w-10 h-10 bg-brandYellow rounded-full border-2 border-black flex items-center justify-center font-comic text-xl text-black transform -rotate-12 font-extrabold shadow-sm">
-          ST</div>
-        <div>
-          <h1 class="font-comic text-2xl tracking-widest text-brandYellow leading-none">SAIGON TẾU</h1>
-          <p class="text-[10px] text-gray-400 font-semibold tracking-wider">MÁY CHỤP HÌNH SIÊU CẤP ĐỘC QUYỀN VÀNG ĐEN
-          </p>
-        </div>
-      </div>
-      <div class="flex gap-1.5" id="step-indicators">
-        <span class="w-3.5 h-3.5 rounded-full bg-brandYellow border border-black" id="ind-1"></span>
-        <span class="w-3.5 h-3.5 rounded-full bg-zinc-700 border border-black" id="ind-2"></span>
-        <span class="w-3.5 h-3.5 rounded-full bg-zinc-700 border border-black" id="ind-3"></span>
-        <span class="w-3.5 h-3.5 rounded-full bg-zinc-700 border border-black" id="ind-4"></span>
-        <span class="w-3.5 h-3.5 rounded-full bg-zinc-700 border border-black" id="ind-5"></span>
-        <span class="w-3.5 h-3.5 rounded-full bg-zinc-700 border border-black" id="ind-6"></span>
-      </div>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">ST</div><div><strong>SAIGON TẾU</strong><span>PHOTOBOOTH</span></div></div>
+      <nav class="progress" id="step-progress">
+        <div class="progress-item active" data-step="1"><span class="step-dot">1</span><span>LAYOUT</span></div>
+        <div class="progress-item" data-step="2"><span class="step-dot">2</span><span>CHỤP ẢNH</span></div>
+        <div class="progress-item" data-step="3"><span class="step-dot">3</span><span>CHỈNH ẢNH</span></div>
+        <div class="progress-item" data-step="4"><span class="step-dot">4</span><span>NHẬN ẢNH</span></div>
+      </nav>
+      <button class="tech" onclick="toggleSettingsPanel()">⚙ CAMERA</button>
     </header>
-
-    <!-- MAIN INTERACTIVE CONTENT SCREEN -->
-    <main class="flex-1 overflow-y-auto px-4 py-4 flex flex-col justify-center relative">
-
-      <!-- STEP 1: LAYOUT SELECTION -->
-      <div id="step-1-view" class="step-view flex flex-col items-center gap-4">
-        <div class="text-center">
-          <span
-            class="bg-brandYellow text-black font-extrabold px-4 py-1 rounded-full text-xs uppercase border-2 border-black">BƯỚC
-            1/6</span>
-          <h2 class="font-comic text-3xl md:text-4xl text-brandYellow mt-2 tracking-wide">CHỌN DÁNG CHUẨN ĐỂ "TẾU"!</h2>
-          <p class="text-xs text-zinc-300 font-medium mt-1">Bố cục in chuẩn 4x6 inch (10x15cm) cho Canon Selphy</p>
+    <main>
+      <section class="view" id="step-1-view">
+        <div class="view-inner">
+          <div class="section-head"><p class="eyebrow">BƯỚC 01 / 04</p><h1 class="title">CHỌN LAYOUT CỦA BẠN</h1><p class="subtitle">Mỗi ô ảnh tương ứng với một lần chụp. Chọn kiểu bạn thích nhất nhé!</p></div>
+          <div class="layout-grid" id="layout-grid">
+            <button class="layout-card selected" data-layout="strip3"><div class="paper strip3"><i><span></span><span></span><span></span></i><i><span></span><span></span><span></span></i></div><h3>DẢI 3 ẢNH</h3><p>3 lần chụp · Hai dải dọc</p></button>
+            <button class="layout-card" data-layout="quick2"><div class="paper double2"><span></span><span></span></div><h3>NHANH 2 ẢNH</h3><p>2 lần chụp · Layout đôi</p></button>
+            <button class="layout-card" data-layout="grid4"><div class="paper grid4"><span></span><span></span><span></span><span></span></div><h3>LƯỚI 4 Ô</h3><p>4 lần chụp · Khung cổ điển</p></button>
+            <button class="layout-card" data-layout="strip4_teu_hoa_ca"><div class="paper strip4"><i><span></span><span></span><span></span><span></span></i><i><span></span><span></span><span></span><span></span></i></div><h3>TẾU HỌA CA</h3><p>4 lần chụp · Khung độc quyền</p></button>
+            <button class="layout-card" data-layout="single"><div class="paper single"><span></span></div><h3>ẢNH ĐƠN</h3><p>1 lần chụp · Chân dung</p></button>
+          </div>
+          <div class="step-actions"><button class="primary" onclick="confirmLayout()">TIẾP TỤC CHỤP ẢNH →</button></div>
         </div>
-
-        <div class="grid grid-cols-2 gap-2.5 w-full max-w-xl mt-2">
-          <div id="layout-strip3" onclick="selectLayout('strip3')"
-            class="layout-card bg-brandCard border-4 border-black p-2.5 rounded-xl cursor-pointer hover:border-brandYellow transition-all flex flex-col items-center gap-2 group selected">
-            <div class="w-14 h-20 bg-white border-2 border-black p-1 flex justify-between gap-1 shadow-md">
-              <div class="w-1/2 border border-zinc-200 flex flex-col gap-1 p-[2px] bg-zinc-50">
-                <div class="flex-1 bg-zinc-300 rounded-[1px]"></div>
-                <div class="flex-1 bg-zinc-300 rounded-[1px]"></div>
-                <div class="flex-1 bg-zinc-300 rounded-[1px]"></div>
-                <div class="h-2 bg-brandYellow rounded-[1px]"></div>
-              </div>
-              <div class="w-1/2 border border-zinc-200 flex flex-col gap-1 p-[2px] bg-zinc-50">
-                <div class="flex-1 bg-zinc-300 rounded-[1px]"></div>
-                <div class="flex-1 bg-zinc-300 rounded-[1px]"></div>
-                <div class="flex-1 bg-zinc-300 rounded-[1px]"></div>
-                <div class="h-2 bg-brandYellow rounded-[1px]"></div>
-              </div>
+      </section>
+      <section class="view hidden" id="step-2-view">
+        <div class="view-inner">
+          <div class="capture-shell">
+            <div class="camera-panel">
+              <video id="webcam-video" autoplay playsinline></video><img id="eos-preview" class="hidden" alt="Canon EOS Live View">
+              <div class="crop-guide hidden" id="crop-guide"><span class="crop-guide-label" id="crop-guide-label"><b>VÙNG ẢNH GIỮ LẠI</b> · Đứng trong khung vàng</span></div>
+              <div class="camera-status" id="capture-status">CAMERA ĐÃ SẴN SÀNG</div>
+              <div class="countdown hidden" id="countdown-overlay"><span id="countdown-text">5</span></div><div class="flash" id="flash-overlay"></div>
+              <div class="review hidden" id="capture-review"><img id="review-image" alt="Ảnh vừa chụp"><div class="review-actions"><p class="eyebrow">KIỂM TRA ẢNH</p><h2>ƯNG TẤM NÀY CHƯA?</h2><p>Bạn có thể chụp lại đúng vị trí này trước khi tiếp tục.</p><button class="primary" onclick="acceptCapturedPhoto()">DÙNG ẢNH NÀY ✓</button><button class="secondary" onclick="retakeCapturedPhoto()">↻ CHỤP LẠI</button></div></div>
             </div>
-            <span class="font-comic text-xs text-white">DẢI 3 ẢNH DỌC</span>
-          </div>
-
-          <div id="layout-grid4" onclick="selectLayout('grid4')"
-            class="layout-card bg-brandCard border-4 border-black p-2.5 rounded-xl cursor-pointer hover:border-brandYellow transition-all flex flex-col items-center gap-2 group">
-            <div class="w-14 h-20 bg-white border-2 border-black p-1 flex flex-col gap-1 shadow-md">
-              <div class="flex-1 grid grid-cols-2 gap-1">
-                <div class="bg-zinc-300 rounded-sm"></div>
-                <div class="bg-zinc-300 rounded-sm"></div>
-                <div class="bg-zinc-300 rounded-sm"></div>
-                <div class="bg-zinc-300 rounded-sm"></div>
-              </div>
-              <div class="h-3 bg-brandYellow rounded-sm"></div>
-            </div>
-            <span class="font-comic text-xs text-white">LƯỚI 4 Ô</span>
-          </div>
-
-          <div id="layout-single_vert" onclick="selectLayout('single_vert')"
-            class="layout-card bg-brandCard border-4 border-black p-2.5 rounded-xl cursor-pointer hover:border-brandYellow transition-all flex flex-col items-center gap-2 group">
-            <div class="w-14 h-20 bg-white border-2 border-black p-1 flex flex-col justify-between shadow-md">
-              <div class="flex-1 bg-zinc-300 rounded-sm"></div>
-              <div class="h-3 bg-brandYellow rounded-sm mt-1"></div>
-            </div>
-            <span class="font-comic text-xs text-white">ẢNH ĐƠN DỌC</span>
-          </div>
-
-          <div id="layout-single_horiz" onclick="selectLayout('single_horiz')"
-            class="layout-card bg-brandCard border-4 border-black p-2.5 rounded-xl cursor-pointer hover:border-brandYellow transition-all flex flex-col items-center gap-2 group">
-            <div class="w-14 h-20 bg-white border-2 border-black p-1 flex flex-col justify-center shadow-md">
-              <div class="h-10 w-full bg-zinc-300 rounded-sm my-auto"></div>
-              <div class="h-3 bg-brandYellow rounded-sm mt-1"></div>
-            </div>
-            <span class="font-comic text-xs text-white">ẢNH ĐƠN NGANG</span>
+            <aside class="capture-side"><div class="side-card"><p class="eyebrow">VỊ TRÍ ĐANG CHỤP</p><h3 id="slot-heading">ẢNH 1 / 3</h3><div class="mini-layout" id="capture-layout-preview"></div></div><div class="capture-controls"><button class="primary" id="capture-button" onclick="captureCurrentSlot()">📸 CHỤP ẢNH NÀY</button><p class="capture-hint">Máy sẽ đếm ngược 5 giây trước khi chụp</p><button class="secondary" onclick="goToStep(1)">← ĐỔI LAYOUT</button></div></aside>
           </div>
         </div>
-
-        <button onclick="goToStep(2)"
-          class="btn-teu comic-border bg-brandYellow text-black font-comic text-xl py-3 px-8 rounded-full hover:bg-yellow-400 active-pulse font-extrabold w-full max-w-xs">
-          CHỐT BỐ CỤC NÀY! <i class="fa-solid fa-arrow-right ml-2"></i>
-        </button>
-      </div>
-
-      <!-- STEP 2: CAMERA VIEW -->
-      <div id="step-2-view" class="step-view hidden flex flex-col items-center gap-4">
-        <div class="text-center w-full">
-          <span
-            class="bg-brandYellow text-black font-extrabold px-4 py-1 rounded-full text-xs uppercase border-2 border-black">BƯỚC
-            2/6</span>
-          <h2 class="font-comic text-3xl text-brandYellow mt-2 tracking-wide" id="capture-status">CHUẨN BỊ BUNG LỤA!
-          </h2>
+      </section>
+      <section class="view hidden" id="step-3-view">
+        <div class="view-inner"><div class="section-head"><p class="eyebrow">BƯỚC 03 / 04</p><h1 class="title">CHỈNH CHẤT ẢNH TẾU</h1><p class="subtitle">Chọn bộ lọc và khung ảnh. Sticker sẽ được cập nhật trong phiên bản sau.</p></div>
+          <div class="edit-shell"><div class="preview-stage"><div class="collage-preview" id="collage-preview"></div></div><div class="edit-controls">
+            <div class="control-card"><h3>BỘ LỌC</h3><div class="options"><button class="option selected" data-filter="normal">MẶT MỘC</button><button class="option" data-filter="bright">RỰC RỠ</button><button class="option" data-filter="bw">ĐEN TRẮNG</button><button class="option" data-filter="vintage">HOÀI CỔ</button></div></div>
+            <div class="control-card"><h3>KHUNG ẢNH</h3><div class="options"><button class="option selected" data-frame="classic">TẾU CLASSIC</button><button class="option" data-frame="comic">MEME COMIC</button><button class="option" data-frame="stage">SÂN KHẤU</button></div></div>
+            <button class="primary" onclick="goToStep(4)">HOÀN TẤT CHỈNH ẢNH →</button><button class="secondary" onclick="goToStep(2)">← CHỤP LẠI</button>
+          </div></div>
         </div>
-
-        <div
-          class="relative w-full max-w-sm aspect-[2/3] bg-black border-4 border-black rounded-2xl overflow-hidden flex items-center justify-center">
-          <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover"
-            style="transform: scaleX(-1);"></video>
-          <div id="camera-quote-bubble"
-            class="absolute top-4 left-4 right-4 bg-white text-black p-3 rounded-2xl border-2 border-black text-center font-hand text-lg font-bold shadow-md opacity-0 scale-75 transition-all duration-300">
-          </div>
-          <div id="countdown-overlay" class="absolute inset-0 bg-black/40 flex items-center justify-center hidden z-20">
-            <div id="countdown-text" class="font-comic text-9xl text-brandYellow drop-shadow-[0_8px_0_#000000]">5</div>
-          </div>
-          <div id="flash-overlay" class="absolute inset-0 bg-white opacity-0 z-30 pointer-events-none"></div>
-          <div
-            class="absolute bottom-4 right-4 bg-black/80 border border-brandYellow text-white px-3 py-1 rounded-full text-xs font-semibold z-10">
-            <i class="fa-solid fa-camera text-brandYellow"></i> Poses: <span id="captured-counter-text"
-              class="text-brandYellow font-bold">0</span>/<span id="total-poses-needed">3</span>
-          </div>
-        </div>
-
-        <button id="start-shoot-btn" onclick="startPhotoSession()"
-          class="btn-teu comic-border bg-brandYellow text-black font-comic text-xl py-4 px-6 rounded-full hover:bg-yellow-400 font-extrabold w-full max-w-xs">
-          <i class="fa-solid fa-circle-play mr-2"></i> BẮT ĐẦU CHỤP HÌNH
-        </button>
-      </div>
-
-      <!-- STEP 3: GALLERY SHOT SELECTION -->
-      <div id="step-3-view" class="step-view hidden flex flex-col items-center gap-3">
-        <div class="text-center w-full">
-          <span
-            class="bg-brandYellow text-black font-extrabold px-4 py-1 rounded-full text-xs uppercase border-2 border-black">BƯỚC
-            3/6</span>
-          <h2 class="font-comic text-3xl text-brandYellow mt-1.5 tracking-wide">CHỌN HÌNH TƯƠI TẮN NHẤT</h2>
-          <p class="text-xs text-zinc-300" id="selection-instruction"></p>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-md my-2" id="gallery-grid-container"></div>
-        <div
-          class="bg-brandCard border-2 border-black p-3 rounded-xl w-full max-w-sm flex justify-between items-center text-sm font-semibold">
-          <span class="text-zinc-300"><i class="fa-regular fa-circle-check text-brandYellow mr-1"></i> Đã chọn:</span>
-          <span class="text-brandYellow font-comic text-lg"><span id="selected-count-badge">0</span> / <span
-              id="target-count-badge">3</span></span>
-        </div>
-        <button id="step-3-next-btn" disabled onclick="initFilterWorkspace(); goToStep(4);"
-          class="btn-teu comic-border bg-zinc-700 text-zinc-400 font-comic text-xl py-3 px-8 rounded-full w-full max-w-xs font-extrabold cursor-not-allowed">
-          TIẾP TỤC DIỄN HÀI <i class="fa-solid fa-wand-magic-sparkles ml-2"></i>
-        </button>
-      </div>
-
-      <!-- STEP 4: FILTERS -->
-      <div id="step-4-view" class="step-view hidden flex flex-col items-center gap-3">
-        <div class="text-center w-full">
-          <span
-            class="bg-brandYellow text-black font-extrabold px-4 py-1 rounded-full text-xs uppercase border-2 border-black">BƯỚC
-            4/6</span>
-          <h2 class="font-comic text-3xl text-brandYellow mt-1.5 tracking-wide">LÊN MÀU CƠ MẶT</h2>
-        </div>
-        <div
-          class="w-full max-w-[220px] bg-white border-[6px] border-black shadow-[5px_5px_0_#000] p-1.5 overflow-hidden"
-          id="filter-collage-preview"></div>
-        <div class="w-full max-w-sm flex gap-2 overflow-x-auto pb-2 justify-center">
-          <button onclick="applyFilter('normal')"
-            class="filter-option-btn w-20 bg-brandCard border-2 border-brandYellow p-2 rounded-lg flex flex-col items-center"><span
-              class="text-[10px] font-bold">Mặt Mộc</span></button>
-          <button onclick="applyFilter('bright')"
-            class="filter-option-btn w-20 bg-brandCard border-2 border-zinc-800 p-2 rounded-lg flex flex-col items-center"><span
-              class="text-[10px] font-bold">Diễn Viên</span></button>
-          <button onclick="applyFilter('bw')"
-            class="filter-option-btn w-20 bg-brandCard border-2 border-zinc-800 p-2 rounded-lg flex flex-col items-center"><span
-              class="text-[10px] font-bold">Deep Chút</span></button>
-          <button onclick="applyFilter('vintage')"
-            class="filter-option-btn w-20 bg-brandCard border-2 border-zinc-800 p-2 rounded-lg flex flex-col items-center"><span
-              class="text-[10px] font-bold">Ấm Lòng</span></button>
-        </div>
-        <button onclick="initFrameWorkspace(); goToStep(5);"
-          class="btn-teu comic-border bg-brandYellow text-black font-comic text-xl py-3 px-8 rounded-full font-extrabold w-full max-w-xs">CHỌN
-          KHUNG ẢNH <i class="fa-solid fa-images ml-2"></i></button>
-      </div>
-
-      <!-- STEP 5: FRAMES -->
-      <div id="step-5-view" class="step-view hidden flex flex-col items-center gap-3">
-        <div class="text-center w-full">
-          <span
-            class="bg-brandYellow text-black font-extrabold px-4 py-1 rounded-full text-xs uppercase border-2 border-black">BƯỚC
-            5/6</span>
-          <h2 class="font-comic text-3xl text-brandYellow mt-1.5 tracking-wide">KHUNG ĐỘC QUYỀN TẾU</h2>
-        </div>
-        <div
-          class="relative w-full max-w-[220px] bg-white border-[6px] border-black shadow-[5px_5px_0_#000] overflow-hidden"
-          id="frame-collage-preview"></div>
-        <div class="w-full max-w-sm flex gap-3 justify-center">
-          <button id="frame-opt-classic" onclick="selectFrame('classic')"
-            class="frame-option-btn border-4 border-brandYellow bg-brandCard p-2 rounded-xl text-xs w-24">Tếu
-            Classic</button>
-          <button id="frame-opt-comic" onclick="selectFrame('comic')"
-            class="frame-option-btn border-4 border-transparent bg-brandCard p-2 rounded-xl text-xs w-24">Meme
-            Comic</button>
-          <button id="frame-opt-stage" onclick="selectFrame('stage')"
-            class="frame-option-btn border-4 border-transparent bg-brandCard p-2 rounded-xl text-xs w-24">Sân
-            Khấu</button>
-        </div>
-        <button onclick="startPrintingSession()"
-          class="btn-teu comic-border bg-brandYellow text-black font-comic text-xl py-4 px-8 rounded-full font-extrabold w-full max-w-xs active-pulse">CHỐT
-          & GỬI IN ẢNH <i class="fa-solid fa-print ml-2"></i></button>
-      </div>
-
-      <!-- STEP 6: PRINTER SIMULATOR
-      <div id="step-6-view" class="step-view hidden flex flex-col items-center gap-6 py-4">
-        <div class="text-center w-full">
-          <span
-            class="bg-green-600 text-white font-comic px-4 py-1 rounded-full text-xs uppercase border-2 border-black animate-pulse">ĐANG
-            KẾT NỐI MÁY IN</span>
-          <h2 class="font-comic text-3xl text-brandYellow mt-3 tracking-wide">CANON SELPHY CP1500</h2>
-        </div>
-        <div class="relative w-full max-w-[240px] h-[180px] flex flex-col justify-end items-center">
-          <div
-            class="absolute bottom-0 w-full h-[120px] bg-white border-4 border-black rounded-3xl shadow-[5px_5px_0_#000] flex flex-col justify-between p-3 z-20">
-            <div
-              class="w-24 h-8 bg-zinc-800 border-2 border-black rounded-lg self-center flex items-center justify-center">
-              <span id="printer-lcd-screen" class="text-[8px] font-mono text-green-400">COLOR PASS: Y</span>
-            </div>
-            <div
-              class="w-11/12 h-5 bg-zinc-900 border-2 border-black rounded-md self-center flex items-center justify-center text-[9px] font-bold text-zinc-500">
-              OUTPUT PAPER SLOT</div>
-          </div>
-          <div
-            class="absolute bottom-6 w-10/12 h-[100px] bg-zinc-200 border-x-4 border-t-4 border-black rounded-t-2xl z-10 overflow-hidden flex justify-center">
-            <div id="printer-paper-card"
-              class="w-[85%] aspect-[2/3] bg-white border-2 border-black transform translate-y-[-110%]">
-              <div class="w-full h-full bg-yellow-400 opacity-60" id="paper-ink-layer"></div>
-            </div>
-          </div>
-        </div>
-        <div class="w-full max-w-sm flex flex-col gap-2 bg-brandCard border-2 border-black p-4 rounded-2xl">
-          <div class="flex justify-between items-center text-xs"><span id="print-progress-step"
-              class="font-bold text-brandYellow">Đang gửi lệnh...</span><span id="print-progress-percent"
-              class="font-bold">0%</span></div>
-          <div class="w-full bg-zinc-800 h-3 border-2 border-black rounded-full overflow-hidden">
-            <div id="print-progress-bar" class="bg-brandYellow h-full w-[0%]"></div>
-          </div>
-        </div>
-        <div id="print-success-actions" class="hidden w-full max-w-xs flex flex-col gap-2">
-          <button onclick="resetPhotobooth()"
-            class="btn-teu comic-border bg-brandYellow text-black font-comic text-xl py-3 px-6 rounded-full font-extrabold w-full">CHỤP
-            TIẾP PHÁT NỮA <i class="fa-solid fa-rotate-left ml-2"></i></button>
-        </div>-->
-      <!-- BƯỚC 6: PRINTER SIMULATOR (Tìm đúng đoạn này và thay thế) -->
-      <div id="step-6-view" class="step-view hidden flex flex-col items-center gap-4 py-2 text-center w-full">
-        <div class="text-center w-full">
-          <span
-            class="bg-green-600 text-white font-comic px-4 py-1 rounded-full text-xs uppercase border-2 border-black animate-pulse">ĐANG
-            KẾT NỐI MÁY IN</span>
-          <h2 class="font-comic text-2xl text-brandYellow mt-2 tracking-wide">CANON SELPHY CP1500</h2>
-        </div>
-
-        <!-- MÁY IN SIMULATOR -->
-        <div class="relative w-full max-w-[200px] h-[140px] flex flex-col justify-end items-center my-1">
-          <div
-            class="absolute bottom-0 w-full h-[90px] bg-white border-4 border-black rounded-3xl shadow-[4px_4px_0_#000] flex flex-col justify-between p-2 z-20">
-            <div
-              class="w-20 h-6 bg-zinc-800 border-2 border-black rounded-lg self-center flex items-center justify-center">
-              <span id="printer-lcd-screen" class="text-[7px] font-mono text-green-400">COLOR PASS: Y</span>
-            </div>
-            <div
-              class="w-11/12 h-4 bg-zinc-900 border-2 border-black rounded-md self-center flex items-center justify-center text-[7px] font-bold text-zinc-500">
-              OUTPUT PAPER SLOT</div>
-          </div>
-          <div
-            class="absolute bottom-4 w-10/12 h-[80px] bg-zinc-200 border-x-4 border-t-4 border-black rounded-t-2xl z-10 overflow-hidden flex justify-center">
-            <div id="printer-paper-card"
-              class="w-[85%] aspect-[2/3] bg-white border-2 border-black transform translate-y-[-110%]">
-              <div class="w-full h-full bg-yellow-400 opacity-60" id="paper-ink-layer"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- KHỐI THANH TIẾN TRÌNH IN -->
-        <div class="w-full max-w-sm flex flex-col gap-1 bg-brandCard border-2 border-black p-3 rounded-2xl my-1">
-          <div class="flex justify-between items-center text-xs"><span id="print-progress-step"
-              class="font-bold text-brandYellow">Đang gửi lệnh...</span><span id="print-progress-percent"
-              class="font-bold">0%</span></div>
-          <div class="w-full bg-zinc-800 h-3 border-2 border-black rounded-full overflow-hidden">
-            <div id="print-progress-bar" class="bg-brandYellow h-full w-[0%]"></div>
-          </div>
-        </div>
-
-        <!-- KHỐI MÃ QR TẢI ẢNH (BẮT BUỘC SỬA TÊN ID THÀNH: qrcode-container) -->
-        <div
-          class="bg-white border-4 border-black p-3 rounded-2xl shadow-[5px_5px_0px_#000] flex flex-col items-center my-2">
-          <div id="qrcode-container" class="bg-white p-1 flex justify-center items-center w-[140px] h-[140px]">
-            <span class="text-xs text-zinc-600 font-bold font-sans animate-pulse">Đang nạp QR...</span>
-          </div>
-          <p class="text-black font-extrabold font-comic text-xs mt-2 tracking-wide">QUÉT MÃ TẢI ẢNH BẢN SỐ</p>
-        </div>
-
-        <!-- KHỐI NÚT CHỤP TIẾP (ĐÃ ĐẨY XUỐNG DƯỚI CÙNG KHÔNG BỊ ĐÈ NỮA) -->
-        <div id="print-success-actions" class="hidden w-full max-w-xs my-1 z-30">
-          <button onclick="resetPhotobooth()"
-            class="btn-teu comic-border bg-brandYellow text-black font-comic text-lg py-3 px-6 rounded-full font-extrabold w-full shadow-md hover:bg-yellow-400 active:translate-y-0.5 transition-all">
-            CHỤP TIẾP PHÁT NỮA <i class="fa-solid fa-rotate-left ml-2"></i>
-          </button>
-        </div>
-      </div>
-
+      </section>
+      <section class="view hidden" id="step-4-view">
+        <div class="view-inner" id="output-choice"><div class="section-head"><p class="eyebrow">BƯỚC 04 / 04</p><h1 class="title">BẠN MUỐN NHẬN ẢNH THẾ NÀO?</h1><p class="subtitle">Dù chọn cách nào, bạn vẫn nhận được QR album riêng trên điện thoại.</p></div><div class="output-grid">
+          <article class="output-card"><div class="output-icon">🖨️</div><h2>IN ẢNH & QR</h2><p>In ảnh tại máy Canon Selphy và nhận thêm album QR để tải ảnh số.</p><button class="primary" onclick="finishSession(true)">IN ẢNH & TẠO QR</button></article>
+          <article class="output-card"><div class="output-icon">▦</div><h2>CHỈ NHẬN QR</h2><p>Không in ảnh. Quét QR để hoàn thành khảo sát, xem và tải album trên điện thoại.</p><button class="secondary" onclick="finishSession(false)">KHÔNG IN · TẠO QR</button></article>
+        </div></div>
+        <div class="view-inner hidden" id="output-result"><div class="result-shell"><p class="eyebrow" id="result-badge">ĐANG XỬ LÝ</p><h2 id="result-title">ẢNH ĐANG ĐƯỢC TẠO...</h2><p id="upload-status">Vui lòng chờ trong giây lát.</p><div class="progress-bar"><div id="upload-progress"></div></div><div class="qr-box" id="qrcode-container">ĐANG TẠO QR...</div><p>Quét QR và hoàn thành khảo sát để mở album</p><button class="primary hidden" id="new-session-button" onclick="resetPhotobooth()">BẮT ĐẦU LƯỢT MỚI</button></div></div>
+      </section>
     </main>
-    <footer
-      class="bg-black p-3 border-t-4 border-black text-center text-[11px] text-zinc-500 z-10 flex justify-between items-center px-6">
-      <span>Powered by <b class="text-white">Canon Selphy CP1500</b></span>
-      <span>Saigon Tếu &copy; 2026</span>
-    </footer>
   </div>
-
-  <!-- AUDIO CORE & CORE SCRIPT SYNCHRONIZER -->
-  <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeep(freq, duration) {
-      if (!audioCtx) return;
-      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.frequency.value = freq; gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-      osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
-    function playShutterSound() { playBeep(800, 0.05); setTimeout(() => playBeep(1200, 0.08), 30); }
-  </script>
-  <script src="renderer.js"></script>
+  <aside class="settings hidden" id="settings-panel"><strong>CÀI ĐẶT CAMERA</strong><select id="camera-select" onchange="changeCameraDevice()"></select><button class="secondary" onclick="reconnectEosCamera()">KẾT NỐI LẠI EOS</button><video id="test-video" autoplay playsinline></video><img id="test-eos-preview" class="hidden" alt="EOS preview"><button class="primary" onclick="triggerTestCapture()">CHỤP TEST</button></aside>
+  <canvas id="work-canvas" class="hidden"></canvas><script src="./qrcode.min.js"></script><script src="./renderer.js"></script>
 </body>
-
 </html>
