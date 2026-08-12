@@ -4,11 +4,11 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 
 const LAYOUTS = {
-  strip3: { count: 3, name: 'Dải 3 ảnh' },
-  quick2: { count: 2, name: 'Nhanh 2 ảnh' },
-  grid4: { count: 4, name: 'Lưới 4 ô' },
-  strip4_teu_hoa_ca: { count: 4, name: 'Tếu Họa Ca' },
-  single: { count: 1, name: 'Ảnh đơn' }
+  strip3: { count: 3, name: 'Dải 3 ảnh', cropAspect: 509 / 475.333 },
+  quick2: { count: 2, name: 'Nhanh 2 ảnh', cropAspect: 1040 / 724 },
+  grid4: { count: 4, name: 'Lưới 4 ô', cropAspect: 509 / 724 },
+  strip4_teu_hoa_ca: { count: 4, name: 'Tếu Họa Ca', cropAspect: 382 / 249 },
+  single: { count: 1, name: 'Ảnh đơn', cropAspect: 1040 / 1470 }
 };
 
 const appState = {
@@ -43,6 +43,7 @@ const TEU_HOA_CA_SLOTS = [
 
 document.addEventListener('DOMContentLoaded', async () => {
   bindControls();
+  bindCropGuide();
   await getAvailableCameras();
   selectLayout('strip3');
   updateProgress(1);
@@ -152,6 +153,73 @@ function renderCaptureLayout() {
   const shownSlot = Math.min(appState.currentSlot + 1, config.count);
   document.getElementById('slot-heading').textContent = appState.currentSlot >= config.count ? 'ĐÃ CHỤP XONG' : `ẢNH ${shownSlot} / ${config.count}`;
   document.getElementById('capture-button').disabled = captureBusy || appState.currentSlot >= config.count;
+  updateCropGuide();
+}
+
+function bindCropGuide() {
+  const panel = document.querySelector('.camera-panel');
+  const video = document.getElementById('webcam-video');
+  const eos = document.getElementById('eos-preview');
+  video.addEventListener('loadedmetadata', updateCropGuide);
+  video.addEventListener('resize', updateCropGuide);
+  eos.addEventListener('load', updateCropGuide);
+  if (typeof ResizeObserver === 'function') new ResizeObserver(updateCropGuide).observe(panel);
+  else window.addEventListener('resize', updateCropGuide);
+}
+
+function activePreviewDimensions() {
+  const video = document.getElementById('webcam-video');
+  const eos = document.getElementById('eos-preview');
+  if (cameraMode === 'eos' && eos.naturalWidth && eos.naturalHeight) return { width: eos.naturalWidth, height: eos.naturalHeight };
+  if (video.videoWidth && video.videoHeight) return { width: video.videoWidth, height: video.videoHeight };
+  return null;
+}
+
+function updateCropGuide() {
+  const guide = document.getElementById('crop-guide');
+  const panel = document.querySelector('.camera-panel');
+  const source = activePreviewDimensions();
+  if (!guide || !panel || !source || appState.currentStep !== 2) {
+    if (guide) guide.classList.add('hidden');
+    return;
+  }
+
+  const panelWidth = panel.clientWidth;
+  const panelHeight = panel.clientHeight;
+  const sourceAspect = source.width / source.height;
+  const panelAspect = panelWidth / panelHeight;
+  let mediaWidth, mediaHeight, mediaLeft, mediaTop;
+  if (panelAspect > sourceAspect) {
+    mediaHeight = panelHeight;
+    mediaWidth = mediaHeight * sourceAspect;
+    mediaLeft = (panelWidth - mediaWidth) / 2;
+    mediaTop = 0;
+  } else {
+    mediaWidth = panelWidth;
+    mediaHeight = mediaWidth / sourceAspect;
+    mediaLeft = 0;
+    mediaTop = (panelHeight - mediaHeight) / 2;
+  }
+
+  const targetAspect = LAYOUTS[appState.selectedLayout].cropAspect;
+  let safeWidth, safeHeight;
+  if (sourceAspect > targetAspect) {
+    safeHeight = mediaHeight;
+    safeWidth = safeHeight * targetAspect;
+  } else {
+    safeWidth = mediaWidth;
+    safeHeight = safeWidth / targetAspect;
+  }
+  guide.style.left = `${mediaLeft + (mediaWidth - safeWidth) / 2}px`;
+  guide.style.top = `${mediaTop + (mediaHeight - safeHeight) / 2}px`;
+  guide.style.width = `${safeWidth}px`;
+  guide.style.height = `${safeHeight}px`;
+  guide.classList.remove('hidden');
+
+  const keptRatio = sourceAspect > targetAspect ? safeWidth / mediaWidth : safeHeight / mediaHeight;
+  const croppedPercent = Math.max(0, Math.round((1 - keptRatio) * 100));
+  const direction = sourceAspect > targetAspect ? 'hai bên' : 'trên & dưới';
+  document.getElementById('crop-guide-label').innerHTML = `<b>VÙNG ẢNH GIỮ LẠI</b> · Cắt khoảng ${croppedPercent}% ${direction}`;
 }
 
 function setCaptureStatus(message) { document.getElementById('capture-status').textContent = message; }
@@ -434,6 +502,7 @@ async function startMainCameraPreview() {
     const video=document.getElementById('webcam-video'),eos=document.getElementById('eos-preview');
     if(cameraMode==='eos') { video.classList.add('hidden'); eos.classList.remove('hidden'); startEosPreviewLoop(eos); }
     else { eos.classList.add('hidden'); video.classList.remove('hidden'); mainStream=await startWebcam(video,selectedDeviceId); }
+    updateCropGuide();
     setCaptureStatus('CAMERA ĐÃ SẴN SÀNG');
   })().finally(()=>{mainPreviewPromise=null;});
   return mainPreviewPromise;
