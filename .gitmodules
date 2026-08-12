@@ -1,0 +1,3 @@
+[submodule "cloudflare-album"]
+	path = cloudflare-album
+	url = https://github.com/Truongvy265/cloudflare-album.git
