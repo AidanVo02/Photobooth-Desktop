@@ -9,6 +9,11 @@ const eosServiceDir = path.join(__dirname, 'tools', 'eos-camera-service');
 const eosServiceSource = path.join(eosServiceDir, 'EosCameraService.cs');
 const eosServiceExe = path.join(eosServiceDir, 'EosCameraService.exe');
 const eosCompiler = 'C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe';
+const NETWORK_SETTINGS = {
+  albumRequestRetries: 3,
+  albumRequestTimeoutMs: 30000,
+  retryDelayMs: 1000
+};
 let eosProcess = null;
 let eosStatus = { connected: false, message: 'Dịch vụ EOS chưa khởi động.' };
 let eosRequestId = 0;
@@ -36,6 +41,28 @@ function loadEnvFile(filePath) {
 }
 
 let mainWindow;
+
+const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+async function fetchWithRetry(url, options, retryOptions = {}) {
+  const {
+    retries = NETWORK_SETTINGS.albumRequestRetries,
+    retryDelayMs = NETWORK_SETTINGS.retryDelayMs,
+    timeoutMs = NETWORK_SETTINGS.albumRequestTimeoutMs
+  } = retryOptions;
+  let lastError = null;
+  for (let attempt = 1; attempt <= retries; attempt += 1) {
+    try {
+      const response = await fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
+      if (response.ok || response.status < 500) return response;
+      lastError = new Error(`Album API HTTP ${response.status}`);
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < retries) await wait(retryDelayMs * attempt);
+  }
+  throw lastError;
+}
 
 function encodeEosValue(value) {
   return Buffer.from(String(value), 'utf8').toString('base64');
@@ -229,14 +256,13 @@ ipcMain.handle('album-create-session', async (_event, { mode, images }) => {
   }
 
   const token = crypto.randomBytes(18).toString('base64url');
-  const response = await fetch(`${apiUrl}/api/sessions`, {
+  const response = await fetchWithRetry(`${apiUrl}/api/sessions`, {
     method: 'POST',
     headers: {
       authorization: `Bearer ${apiSecret}`,
       'content-type': 'application/json'
     },
-    body: JSON.stringify({ token, mode, images }),
-    signal: AbortSignal.timeout(20000)
+    body: JSON.stringify({ token, mode, images })
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || `Album API HTTP ${response.status}`);

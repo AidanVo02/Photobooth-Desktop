@@ -32,6 +32,16 @@ let mainPreviewPromise = null;
 let eosPreviewGeneration = 0;
 let eosConnected = false;
 let captureBusy = false;
+let cachedImgbbApiKey = null;
+
+const NETWORK_SETTINGS = {
+  albumCreateRetries: 3,
+  baseRetryDelayMs: 900,
+  imgbbRequestTimeoutMs: 45000,
+  uploadConcurrency: 3,
+  uploadMaxDimension: 2400,
+  uploadJpegQuality: 0.9
+};
 
 const TEU_HOA_CA_FRAME_PATH = path.join(__dirname, 'assets', 'frames', 'teu-hoa-ca-strip4.png');
 const TEU_HOA_CA_SLOTS = [
@@ -225,6 +235,35 @@ function updateCropGuide() {
 function setCaptureStatus(message) { document.getElementById('capture-status').textContent = message; }
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
+async function retryOperation(operation, options = {}) {
+  const {
+    retries = 3,
+    baseDelayMs = NETWORK_SETTINGS.baseRetryDelayMs,
+    shouldRetry = () => true
+  } = options;
+  let lastError = null;
+  for (let attempt = 1; attempt <= retries; attempt += 1) {
+    try {
+      return await operation(attempt);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= retries || !shouldRetry(error, attempt)) break;
+      await wait(baseDelayMs * attempt);
+    }
+  }
+  throw lastError;
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = NETWORK_SETTINGS.imgbbRequestTimeoutMs) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(new Error('timeout')), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function captureCurrentSlot() {
   const target = LAYOUTS[appState.selectedLayout].count;
   if (captureBusy || appState.currentSlot >= target) return;
@@ -403,11 +442,12 @@ async function finishSession(shouldPrint) {
     progress.style.width='8%'; status.textContent='Đang tạo ảnh ghép chất lượng cao...';
     const canvas = await compileFinalCollageCanvas(true);
     if (shouldPrint) ipcRenderer.send('trigger-silent-print',canvas.outputPath);
-    progress.style.width='20%'; status.textContent='Đang tải ảnh gốc lên album...';
-    const originals = await uploadOriginalPhotos((done,total)=>{ progress.style.width=`${20 + Math.round(done/total*50)}%`; status.textContent=`Đã tải ${done}/${total} ảnh gốc...`; });
-    status.textContent='Đang tải ảnh ghép...';
     const collageBlob = await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.95));
-    const collage = await uploadBlobToImgbb(collageBlob,'saigonteu_collage.jpg');
+    if (!collageBlob) throw new Error('Không tạo được file ảnh ghép.');
+    progress.style.width='20%'; status.textContent='Đang tải ảnh lên album...';
+    const originalsPromise = uploadOriginalPhotos((done,total)=>{ progress.style.width=`${20 + Math.round(done/total*50)}%`; status.textContent=`Đã tải ${done}/${total} ảnh gốc...`; });
+    const collagePromise = uploadBlobToImgbb(collageBlob,'saigonteu_collage.jpg');
+    const [originals, collage] = await Promise.all([originalsPromise, collagePromise]);
     progress.style.width='82%'; status.textContent='Đang tạo album riêng...';
     const album = await createPhotoSession('photobooth',[...originals,{...collage,kind:'collage',order:originals.length+1}]);
     renderAlbumQr(qr,album.albumUrl);
@@ -426,38 +466,88 @@ async function finishSession(shouldPrint) {
 }
 
 function getImgbbApiKey() {
+  if (cachedImgbbApiKey) return cachedImgbbApiKey;
   const line = fs.readFileSync(path.join(__dirname,'.env'),'utf8').split(/\r?\n/).find(value=>value.trim().startsWith('IMGBB_API_KEY='));
   if (!line) throw new Error('Thiếu IMGBB_API_KEY trong .env.');
-  return line.slice(line.indexOf('=')+1).trim().replace(/^['"]|['"]$/g,'');
+  cachedImgbbApiKey = line.slice(line.indexOf('=')+1).trim().replace(/^['"]|['"]$/g,'');
+  return cachedImgbbApiKey;
 }
 
 async function uploadBlobToImgbb(blob,fileName) {
-  const form = new FormData(); form.append('image',blob,fileName);
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(getImgbbApiKey())}`,{method:'POST',body:form});
-  const result = await response.json();
-  if (!response.ok || !result.success) throw new Error(result?.error?.message || 'Không upload được ảnh.');
-  return { directUrl:result.data.url, viewerUrl:result.data.url_viewer };
+  return retryOperation(async () => {
+    const form = new FormData();
+    form.append('image',blob,fileName);
+    const response = await fetchWithTimeout(
+      `https://api.imgbb.com/1/upload?key=${encodeURIComponent(getImgbbApiKey())}`,
+      {method:'POST',body:form}
+    );
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result?.error?.message || 'Không upload được ảnh.');
+    return { directUrl:result.data.url, viewerUrl:result.data.url_viewer };
+  }, {
+    retries: 3,
+    shouldRetry: error => /abort|timeout|network|fetch/i.test(error?.message || '')
+  });
+}
+
+async function optimizePhotoBlob(sourceUrl) {
+  const image = await loadImageElement(sourceUrl);
+  const longestSide = Math.max(image.width, image.height);
+  const scale = longestSide > NETWORK_SETTINGS.uploadMaxDimension
+    ? NETWORK_SETTINGS.uploadMaxDimension / longestSide
+    : 1;
+  const targetWidth = Math.max(1, Math.round(image.width * scale));
+  const targetHeight = Math.max(1, Math.round(image.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', NETWORK_SETTINGS.uploadJpegQuality));
+  if (!blob) throw new Error('Không tạo được ảnh tối ưu để upload.');
+  return blob;
 }
 
 async function photoBlob(index) {
-  const filePath=appState.capturedPhotoPaths[index];
-  if (filePath) return new Blob([fs.readFileSync(filePath)],{type:'image/jpeg'});
-  return (await fetch(appState.capturedPhotos[index])).blob();
+  const sourceUrl = appState.capturedPhotos[index];
+  if (!sourceUrl) throw new Error(`Thiếu ảnh cho vị trí ${index + 1}.`);
+  return optimizePhotoBlob(sourceUrl);
+}
+
+async function mapWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      if (currentIndex >= items.length) return;
+      results[currentIndex] = await worker(items[currentIndex], currentIndex);
+    }
+  });
+  await Promise.all(workers);
+  return results;
 }
 
 async function uploadOriginalPhotos(onProgress) {
-  const output=[];
-  for(let index=0;index<appState.capturedPhotos.length;index+=1){
-    const uploaded=await uploadBlobToImgbb(await photoBlob(index),`photo_${index+1}.jpg`);
-    output.push({...uploaded,kind:'original',order:index+1});
-    if(onProgress) onProgress(index+1,appState.capturedPhotos.length);
-  }
-  return output;
+  let completed = 0;
+  return mapWithConcurrency(
+    appState.capturedPhotos,
+    NETWORK_SETTINGS.uploadConcurrency,
+    async (_photo,index) => {
+      const uploaded=await uploadBlobToImgbb(await photoBlob(index),`photo_${index+1}.jpg`);
+      completed += 1;
+      if(onProgress) onProgress(completed,appState.capturedPhotos.length);
+      return {...uploaded,kind:'original',order:index+1};
+    }
+  );
 }
 
 async function createPhotoSession(mode,images) {
   const publicImages=images.map(({directUrl,viewerUrl,kind,order})=>({directUrl,viewerUrl,kind,order}));
-  return ipcRenderer.invoke('album-create-session',{mode,images:publicImages});
+  return retryOperation(() => ipcRenderer.invoke('album-create-session',{mode,images:publicImages}), {
+    retries: NETWORK_SETTINGS.albumCreateRetries
+  });
 }
 
 function renderAlbumQr(container,url) {
